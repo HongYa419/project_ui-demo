@@ -1,9 +1,10 @@
 import Vue from 'vue'
 import Router from 'vue-router'
+import store from '../store'
 
 Vue.use(Router)
 
-export default new Router({
+const router =  new Router({
   routes: [
     {
       path: '/',
@@ -16,7 +17,38 @@ export default new Router({
           {path:'/role',component:()=>import('../components/role/index'),meta:{selected:'/role'}},
           {path:'/role/add',component:()=>import('../components/role/info'),meta:{selected:'/role'}},
           {path:'/role/:id',component:()=>import('../components/role/info'),meta:{selected:'/role'}},
+          {path:'/user',component:()=>import('../components/user/index'),meta:{selected:'/user'}},
+          {path:'/user/add',component:()=>import('../components/user/info'),meta:{selected:'/user'}},
+          {path:'/user/:id',component:()=>import('../components/user/info'),meta:{selected:'/user'}},
       ]
+    },
+    {
+      path:'/login',
+      component:()=>import('../components/Login')
     }
   ]
 })
+
+router.beforeEach((to,from,next)=>{
+  if(to.fullPath !== '/login'){
+    var userinfo = store.state.userinfo;
+    if (userinfo !== null) {
+      var nowpath = to.meta.selected;
+      var allowpath = userinfo.menus_url;
+      if(allowpath.indexOf('/')<0){
+        allowpath.push('/')
+      }
+      if (allowpath.indexOf(nowpath)>=0) {
+        next()
+      }else{
+        next('/')
+      }
+    }else {
+      next('/login')
+    }
+  }else {
+    next();
+  }
+})
+
+export default router

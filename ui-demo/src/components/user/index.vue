@@ -2,12 +2,13 @@
     <div>
         <el-breadcrumb separator=">">
             <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
-            <el-breadcrumb-item>角色管理</el-breadcrumb-item>
+            <el-breadcrumb-item>管理员管理</el-breadcrumb-item>
         </el-breadcrumb>
-        <el-button type="primary" @click="$router.push('/role/add')">添加</el-button>
+        <el-button type="primary" @click="$router.push('/user/add')">添加</el-button>
         <el-table :data="arr" border stripe>
             <el-table-column label="编号" prop="id"></el-table-column>
-            <el-table-column label="角色名称" prop="rolename"></el-table-column>
+            <el-table-column label="管理员角色" prop="rolename"></el-table-column>
+            <el-table-column label="管理员名称" prop="username"></el-table-column>
             <el-table-column label="状态">
                 <template slot-scope="item">
                     <el-tag v-if="item.row.status == 1">启用</el-tag>
@@ -16,35 +17,56 @@
             </el-table-column>
             <el-table-column label="操作" width="150px">
                 <template slot-scope="scope">
-                    <el-button size="mini" type="primary" @click="$router.push('/role/'+scope.row.id)">编辑</el-button>
-                    <el-button size="mini" type="danger" @click="del(scope.row.id)">删除</el-button>
+                    <el-button size="mini" type="primary" @click="$router.push('/user/'+scope.row.uid)">编辑</el-button>
+                    <el-button size="mini" type="danger" @click="del(scope.row.uid)">删除</el-button>
                 </template>
             </el-table-column>
         </el-table>
+        <el-pagination 
+            background
+            :total="total"
+            :page-size="2"
+            layout="prev, pager, next"
+            @current-change="pageChange"
+        ></el-pagination>
     </div>
 </template>
 
 <script>
-// import axios from 'axios'
 export default {
     data() {
         return {
-            arr:[]
+            arr:[],
+            total:0,
+            page:1
         }
     },
     mounted() {
-        this.axios.get('/api/rolelist').then(res=>{
-            this.arr = res.data.list
-        })   
+        this.axios({ url:'/api/usercount' }).then(res=>{
+            if (res.data.code === 200) {
+                this.total = res.data.list[0].total
+            }
+        })
+        this.getPageList();
     },
     methods: {
-        del(obj){
-            this.$confirm('此操作将永久删除该角色, 是否继续?', '提示', {
+        // 获取分页数据
+        getPageList(){
+            this.axios.get('/api/userlist',{ params: {size:2,page:this.page}}).then(res=>{
+                this.arr = res.data.list;
+            })
+        },
+        pageChange(n){
+            this.page = n;
+            this.getPageList();
+        },
+        del(uid){
+            this.$confirm('此操作将永久删除该管理员, 是否继续?', '提示', {
                 confirmButtonText: '确定',
                 cancelButtonText: '取消',
                 type: 'warning'
             }).then(() => {
-                this.axios.post('/api/roledelete',{id:obj}).then(res=>{
+                this.axios.post('/api/userdelete',{uid,size:2,page:this.page}).then(res=>{
                     if(res.data.code === 200){
                         this.arr = res.data.list
                         this.$message({

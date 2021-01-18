@@ -1,6 +1,12 @@
 <template>
   <el-container class="page">
-    <el-header>Header</el-header>
+    <el-header>
+      <span class="fl">小U商城后台管理系统</span>
+      <span class="fr">
+        欢迎：{{ $store.state.userinfo ? $store.state.userinfo.username:'' }}
+        <a href="javascript:void(0);" @click="logout">退出</a>
+      </span>
+    </el-header>
     <el-container>
       <el-aside width="160px">
         <el-menu
@@ -15,7 +21,7 @@
         <el-menu-item index="/">
             <i class="el-icon-s-home">首页</i>
         </el-menu-item>
-          <el-submenu v-for="item of menus" :key="item.id" :index="item.title">
+          <el-submenu v-for="item of $store.state.userinfo.menus" :key="item.id" :index="item.title">
             <template slot="title">
               <i :class="item.icon"></i>
               <span>{{ item.title }}</span>
@@ -33,7 +39,6 @@
 </template>
 
 <script>
-import axios from 'axios'
 export default {
     data() {
         return {
@@ -42,17 +47,19 @@ export default {
         }
     },
     mounted(){
-        console.log(this.defaultActive);
         this.defaultActive = this.$route.meta.selected;
-        axios.get('/api/menulist',{ params:{istree:true} }).then(result=>{
-            this.menus = result.data.list
-        })
     },
     watch:{
         $route(newVal){
             this.defaultActive = newVal.meta.selected
         }
-    }
+    },
+    methods: {
+      logout(){
+        this.$store.commit('setUserInfo',null)
+        this.$router.replace('/login')
+      }
+    },
 };
 </script>
 
@@ -63,6 +70,7 @@ export default {
 }
 .el-header {
   background-color: skyblue;
+  line-height: 60px;
 }
 .el-aside {
   background-color: #545c64;
@@ -75,5 +83,9 @@ export default {
 }
 .el-footer {
   background-color: slateblue;
+}
+.fr {
+  position: absolute;
+  right: 20px;
 }
 </style>
